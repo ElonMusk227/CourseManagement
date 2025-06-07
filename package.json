@@ -1,0 +1,9 @@
+{
+  "name": "escep-school-management",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "php -S localhost:8000",
+    "start": "php -S localhost:8000"
+  }
+}

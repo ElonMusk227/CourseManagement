@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de Bord Enseignant - ESCEP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50">
+    <nav class="bg-white shadow-lg border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-blue-600">ESCEP</h1>
+                    <span class="ml-4 text-gray-500">|</span>
+                    <span class="ml-4 text-gray-700">Espace Enseignant</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center text-gray-700">
+                        <i class="fas fa-chalkboard-teacher mr-2"></i>
+                        <span id="userName">Chargement...</span>
+                    </div>
+                    <button onclick="logout()" class="text-red-600 hover:text-red-800 transition-colors">
+                        <i class="fas fa-sign-out-alt mr-1"></i>Déconnexion
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl text-white p-8 mb-8">
+            <h2 class="text-3xl font-bold mb-2">Espace Enseignant</h2>
+            <p class="text-blue-100">Gérez vos matières et consultez vos cours</p>
+        </div>
+        <div class="grid md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-xl p-6 shadow-lg card-hover">
+                <div class="flex items-center">
+                    <div class="bg-blue-100 p-3 rounded-full">
+                        <i class="fas fa-book text-2xl text-blue-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-gray-600 text-sm">Matières Enseignées</p>
+                        <p class="text-2xl font-bold text-gray-900" id="totalSubjects">--</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-6 shadow-lg card-hover">
+                <div class="flex items-center">
+                    <div class="bg-green-100 p-3 rounded-full">
+                        <i class="fas fa-users text-2xl text-green-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-gray-600 text-sm">Département</p>
+                        <p class="text-lg font-bold text-gray-900" id="department">--</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-6 shadow-lg card-hover">
+                <div class="flex items-center">
+                    <div class="bg-purple-100 p-3 rounded-full">
+                        <i class="fas fa-calendar text-2xl text-purple-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-gray-600 text-sm">Ancienneté</p>
+                        <p class="text-lg font-bold text-gray-900" id="seniority">--</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-lg">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-semibold text-gray-900">
+                        <i class="fas fa-graduation-cap text-blue-600 mr-2"></i>Mes Matières
+                    </h3>
+                    <div class="flex space-x-3">
+                        <input type="text" id="searchSubjects" placeholder="Rechercher une matière..."
+                               class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <button onclick="searchAllSubjects()" 
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                            <i class="fas fa-search mr-2"></i>Recherche Globale
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6">
+                <div id="subjectsContainer" class="space-y-4">
+                    <div class="text-center py-8">
+                        <i class="fas fa-spinner fa-spin text-2xl text-gray-400 mb-2"></i>
+                        <p class="text-gray-600">Chargement des matières...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="searchModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-xl p-6 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold">Résultats de recherche</h3>
+                    <button onclick="closeSearchModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="searchResults"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let teacherSubjects = [];
+
+        function checkAuth() {
+            const user = localStorage.getItem('user');
+            if (!user) {
+                window.location.href = '../login.html';
+                return;
+            }
+            
+            currentUser = JSON.parse(user);
+            if (currentUser.role !== 'teacher') {
+                window.location.href = '../login.html';
+                return;
+            }
+            
+            document.getElementById('userName').textContent = `${currentUser.prenom} ${currentUser.nom}`;
+            loadTeacherData();
+        }
+
+        async function loadTeacherData() {
+            try {
+                const response = await fetch(`../api/subjects.php?teacher_id=${currentUser.id}`);
+                const subjects = await response.json();
+                
+                teacherSubjects = subjects;
+                displaySubjects(subjects);
+                updateStats(subjects);
+                
+            } catch (error) {
+                console.error('Error loading teacher data:', error);
+            }
+        }
+        function displaySubjects(subjects) {
+            const container = document.getElementById('subjectsContainer');
+            
+            if (subjects.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fas fa-book text-4xl text-gray-300 mb-4"></i>
+                        <p class="text-gray-600">Aucune matière assignée</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = subjects.map(subject => `
+                <div class="border border-gray-200 rounded-lg p-6 hover:bg-gray-50 transition-colors card-hover">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <h4 class="text-lg font-semibold text-gray-900 mb-2">${subject.nom}</h4>
+                            <div class="grid md:grid-cols-3 gap-4 text-sm text-gray-600">
+                                <div>
+                                    <i class="fas fa-code mr-2 text-blue-500"></i>
+                                    <strong>Code:</strong> ${subject.code}
+                                </div>
+                                <div>
+                                    <i class="fas fa-star mr-2 text-yellow-500"></i>
+                                    <strong>Crédits:</strong> ${subject.credits}
+                                </div>
+                                <div>
+                                    <i class="fas fa-building mr-2 text-green-500"></i>
+                                    <strong>Département:</strong> ${subject.departement}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2 ml-4">
+                            <button onclick="viewSubjectAverage(${subject.id})" 
+                                    class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded-lg text-sm transition-colors">
+                                <i class="fas fa-chart-bar mr-1"></i>Moyenne
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        async function viewSubjectAverage(subjectId) {
+            try {
+                const response = await fetch(`../api/grades.php?subject_average=1&subject_id=${subjectId}`);
+                const data = await response.json();
+                
+                const subject = teacherSubjects.find(s => s.id === subjectId);
+                alert(`Moyenne de la matière "${subject.nom}": ${data.average || 'N/A'}/20`);
+                
+            } catch (error) {
+                console.error('Error fetching subject average:', error);
+                alert('Erreur lors du chargement de la moyenne');
+            }
+        }
+
+        async function searchAllSubjects() {
+            const searchTerm = document.getElementById('searchSubjects').value;
+            if (!searchTerm.trim()) {
+                alert('Veuillez saisir un terme de recherche');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`../api/subjects.php?search=${encodeURIComponent(searchTerm)}`);
+                const results = await response.json();
+                
+                displaySearchResults(results);
+                document.getElementById('searchModal').classList.remove('hidden');
+                
+            } catch (error) {
+                console.error('Error searching subjects:', error);
+                alert('Erreur lors de la recherche');
+            }
+        }
+        function displaySearchResults(results) {
+            const container = document.getElementById('searchResults');
+            
+            if (results.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4">
+                        <p class="text-gray-600">Aucun résultat trouvé</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = results.map(subject => `
+                <div class="border border-gray-200 rounded-lg p-4 mb-3">
+                    <h4 class="font-semibold text-gray-900">${subject.nom}</h4>
+                    <p class="text-sm text-gray-600">Code: ${subject.code} • ${subject.credits} crédits • ${subject.departement}</p>
+                </div>
+            `).join('');
+        }
+
+        function closeSearchModal() {
+            document.getElementById('searchModal').classList.add('hidden');
+        }
+
+  
+        function updateStats(subjects) {
+            document.getElementById('totalSubjects').textContent = subjects.length;
+            document.getElementById('department').textContent = subjects.length > 0 ? subjects[0].departement : 'N/A';
+            const currentYear = new Date().getFullYear();
+            const startYear = 2020; 
+            document.getElementById('seniority').textContent = `${currentYear - startYear} ans`;
+        }
+
+        document.getElementById('searchSubjects').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filtered = teacherSubjects.filter(subject => 
+                subject.nom.toLowerCase().includes(searchTerm) ||
+                subject.code.toLowerCase().includes(searchTerm) ||
+                subject.departement.toLowerCase().includes(searchTerm)
+            );
+            displaySubjects(filtered);
+        });
+
+      
+        function logout() {
+            localStorage.removeItem('user');
+            window.location.href = '../login.html';
+        }
+
+
+        checkAuth();
+    </script>
+</body>
+</html>

@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration - ESCEP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50">
+    <nav class="bg-white shadow-lg border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-blue-600">ESCEP</h1>
+                    <span class="ml-4 text-gray-500">|</span>
+                    <span class="ml-4 text-gray-700">Administration</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center text-gray-700">
+                        <i class="fas fa-user-shield mr-2"></i>
+                        <span id="userName">Administrateur</span>
+                    </div>
+                    <button onclick="logout()" class="text-red-600 hover:text-red-800 transition-colors">
+                        <i class="fas fa-sign-out-alt mr-1"></i>Déconnexion
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl text-white p-8 mb-8">
+            <h2 class="text-3xl font-bold mb-2">Panneau d'Administration</h2>
+            <p class="text-purple-100">Gérez les matières et la configuration du système</p>
+        </div>
+
+        <div class="grid md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-xl p-6 shadow-lg card-hover">
+                <div class="flex items-center">
+                    <div class="bg-blue-100 p-3 rounded-full">
+                        <i class="fas fa-book text-2xl text-blue-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-gray-600 text-sm">Total Matières</p>
+                        <p class="text-2xl font-bold text-gray-900" id="totalSubjects">--</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-6 shadow-lg card-hover">
+                <div class="flex items-center">
+                    <div class="bg-green-100 p-3 rounded-full">
+                        <i class="fas fa-chalkboard-teacher text-2xl text-green-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-gray-600 text-sm">Enseignants</p>
+                        <p class="text-2xl font-bold text-gray-900">5</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-6 shadow-lg card-hover">
+                <div class="flex items-center">
+                    <div class="bg-yellow-100 p-3 rounded-full">
+                        <i class="fas fa-graduation-cap text-2xl text-yellow-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-gray-600 text-sm">Étudiants</p>
+                        <p class="text-2xl font-bold text-gray-900">150</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-6 shadow-lg card-hover">
+                <div class="flex items-center">
+                    <div class="bg-purple-100 p-3 rounded-full">
+                        <i class="fas fa-building text-2xl text-purple-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-gray-600 text-sm">Départements</p>
+                        <p class="text-2xl font-bold text-gray-900">3</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-lg">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-semibold text-gray-900">
+                        <i class="fas fa-cog text-purple-600 mr-2"></i>Gestion des Matières
+                    </h3>
+                    <button onclick="showAddSubjectModal()" 
+                            class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Nouvelle Matière
+                    </button>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="mb-4">
+                    <input type="text" id="searchSubjects" placeholder="Rechercher une matière..."
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+                <div id="subjectsContainer" class="space-y-4">
+                    <div class="text-center py-8">
+                        <i class="fas fa-spinner fa-spin text-2xl text-gray-400 mb-2"></i>
+                        <p class="text-gray-600">Chargement des matières...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="subjectModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold" id="modalTitle">Nouvelle Matière</h3>
+                    <button onclick="closeSubjectModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="subjectForm" class="space-y-4">
+                    <input type="hidden" id="subjectId">
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nom de la matière</label>
+                        <input type="text" id="subjectName" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Code</label>
+                        <input type="text" id="subjectCode" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Crédits</label>
+                        <input type="number" id="subjectCredits" required min="1" max="10"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Département</label>
+                        <select id="subjectDepartment" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <option value="">Sélectionner un département</option>
+                            <option value="Informatique">Informatique</option>
+                            <option value="Mathématiques">Mathématiques</option>
+                            <option value="Économie">Économie</option>
+                            <option value="Commerce">Commerce</option>
+                        </select>
+                    </div>
+
+                    <div class="flex space-x-3 pt-4">
+                        <button type="submit" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg transition-colors">
+                            <i class="fas fa-save mr-2"></i>Enregistrer
+                        </button>
+                        <button type="button" onclick="closeSubjectModal()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-lg transition-colors">
+                            Annuler
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let allSubjects = [];
+        let editingSubject = null;
+
+        function checkAuth() {
+            const user = localStorage.getItem('user');
+            if (!user) {
+                window.location.href = '../login.html';
+                return;
+            }
+            
+            currentUser = JSON.parse(user);
+            if (currentUser.role !== 'admin') {
+                window.location.href = '../login.html';
+                return;
+            }
+            
+            loadSubjects();
+        }
+
+        async function loadSubjects() {
+            try {
+                const response = await fetch('../api/subjects.php');
+                const subjects = await response.json();
+                
+                allSubjects = subjects;
+                displaySubjects(subjects);
+                document.getElementById('totalSubjects').textContent = subjects.length;
+                
+            } catch (error) {
+                console.error('Error loading subjects:', error);
+            }
+        }
+
+        function displaySubjects(subjects) {
+            const container = document.getElementById('subjectsContainer');
+            
+            if (subjects.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fas fa-book text-4xl text-gray-300 mb-4"></i>
+                        <p class="text-gray-600">Aucune matière trouvée</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = subjects.map(subject => `
+                <div class="border border-gray-200 rounded-lg p-6 hover:bg-gray-50 transition-colors">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <h4 class="text-lg font-semibold text-gray-900 mb-2">${subject.nom}</h4>
+                            <div class="grid md:grid-cols-3 gap-4 text-sm text-gray-600">
+                                <div>
+                                    <i class="fas fa-code mr-2 text-blue-500"></i>
+                                    <strong>Code:</strong> ${subject.code}
+                                </div>
+                                <div>
+                                    <i class="fas fa-star mr-2 text-yellow-500"></i>
+                                    <strong>Crédits:</strong> ${subject.credits}
+                                </div>
+                                <div>
+                                    <i class="fas fa-building mr-2 text-green-500"></i>
+                                    <strong>Département:</strong> ${subject.departement}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2 ml-4">
+                            <button onclick="editSubject(${subject.id})" 
+                                    class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded-lg text-sm transition-colors">
+                                <i class="fas fa-edit mr-1"></i>Modifier
+                            </button>
+                            <button onclick="deleteSubject(${subject.id}, '${subject.nom}')" 
+                                    class="bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded-lg text-sm transition-colors">
+                                <i class="fas fa-trash mr-1"></i>Supprimer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showAddSubjectModal() {
+            editingSubject = null;
+            document.getElementById('modalTitle').textContent = 'Nouvelle Matière';
+            document.getElementById('subjectForm').reset();
+            document.getElementById('subjectId').value = '';
+            document.getElementById('subjectModal').classList.remove('hidden');
+        }
+
+        function editSubject(id) {
+            editingSubject = allSubjects.find(s => s.id === id);
+            if (!editingSubject) return;
+            
+            document.getElementById('modalTitle').textContent = 'Modifier la Matière';
+            document.getElementById('subjectId').value = editingSubject.id;
+            document.getElementById('subjectName').value = editingSubject.nom;
+            document.getElementById('subjectCode').value = editingSubject.code;
+            document.getElementById('subjectCredits').value = editingSubject.credits;
+            document.getElementById('subjectDepartment').value = editingSubject.departement;
+            document.getElementById('subjectModal').classList.remove('hidden');
+        }
+        async function deleteSubject(id, name) {
+            if (!confirm(`Êtes-vous sûr de vouloir supprimer la matière "${name}" ?`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('../api/subjects.php', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id })
+                });
+                
+                if (response.ok) {
+                    alert('Matière supprimée avec succès');
+                    loadSubjects();
+                } else {
+                    throw new Error('Erreur lors de la suppression');
+                }
+            } catch (error) {
+                console.error('Error deleting subject:', error);
+                alert('Erreur lors de la suppression de la matière');
+            }
+        }
+        function closeSubjectModal() {
+            document.getElementById('subjectModal').classList.add('hidden');
+        }
+
+        document.getElementById('subjectForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                nom: document.getElementById('subjectName').value,
+                code: document.getElementById('subjectCode').value,
+                credits: parseInt(document.getElementById('subjectCredits').value),
+                departement: document.getElementById('subjectDepartment').value
+            };
+            
+            try {
+                let response;
+                if (editingSubject) {
+                    formData.id = editingSubject.id;
+                    response = await fetch('../api/subjects.php', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData)
+                    });
+                } else {
+                    response = await fetch('../api/subjects.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData)
+                    });
+                }
+                
+                if (response.ok) {
+                    alert(editingSubject ? 'Matière modifiée avec succès' : 'Matière créée avec succès');
+                    closeSubjectModal();
+                    loadSubjects();
+                } else {
+                    throw new Error('Erreur lors de la sauvegarde');
+                }
+            } catch (error) {
+                console.error('Error saving subject:', error);
+                alert('Erreur lors de la sauvegarde de la matière');
+            }
+        });
+
+        // Search functionality
+        document.getElementById('searchSubjects').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filtered = allSubjects.filter(subject => 
+                subject.nom.toLowerCase().includes(searchTerm) ||
+                subject.code.toLowerCase().includes(searchTerm) ||
+                subject.departement.toLowerCase().includes(searchTerm)
+            );
+            displaySubjects(filtered);
+        });
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('user');
+            window.location.href = '../login.html';
+        }
+
+        // Initialize
+        checkAuth();
+    </script>
+</body>
+</html>
