@@ -128,7 +128,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
            
         </div>
-
         <div class="text-center">
             <a href="index.php" class="text-white hover:text-gray-200 transition-colors">
                 <i class="fas fa-arrow-left mr-2"></i>Retour à l'accueil

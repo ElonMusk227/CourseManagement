@@ -1,9 +1,6 @@
--- ESCEP School Management System Database Schema
 
-CREATE DATABASE IF NOT EXISTS escep_school;
-USE escep_school;
 
--- Users table (for authentication)
+
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nom VARCHAR(100) NOT NULL,
@@ -13,9 +10,9 @@ CREATE TABLE users (
     password VARCHAR(255) NOT NULL,
     role ENUM('student', 'teacher', 'admin') NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+)ENGINE=INNODB;
 
--- Teachers table
+
 CREATE TABLE teachers (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -23,17 +20,17 @@ CREATE TABLE teachers (
     departement VARCHAR(100) NOT NULL,
     indice INT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);
+)ENGINE=INNODB;
 
--- Students table
+
 CREATE TABLE students (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     annee_entree YEAR NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);
+)ENGINE=INNODB;
 
--- Subjects table
+
 CREATE TABLE subjects (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nom VARCHAR(150) NOT NULL,
@@ -41,9 +38,9 @@ CREATE TABLE subjects (
     credits INT NOT NULL DEFAULT 3,
     departement VARCHAR(100) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+)ENGINE=INNODB;
 
--- Teacher-Subject assignments
+
 CREATE TABLE teacher_subjects (
     id INT AUTO_INCREMENT PRIMARY KEY,
     teacher_id INT NOT NULL,
@@ -51,9 +48,9 @@ CREATE TABLE teacher_subjects (
     FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE CASCADE,
     FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
     UNIQUE KEY unique_assignment (teacher_id, subject_id)
-);
+)ENGINE=INNODB;
 
--- Student-Subject enrollments
+
 CREATE TABLE student_subjects (
     id INT AUTO_INCREMENT PRIMARY KEY,
     student_id INT NOT NULL,
@@ -61,9 +58,9 @@ CREATE TABLE student_subjects (
     FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
     FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
     UNIQUE KEY unique_enrollment (student_id, subject_id)
-);
+)ENGINE=INNODB;
 
--- Grades table
+
 CREATE TABLE grades (
     id INT AUTO_INCREMENT PRIMARY KEY,
     student_id INT NOT NULL,
@@ -75,15 +72,14 @@ CREATE TABLE grades (
     FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
     FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
     FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE CASCADE
-);
+)ENGINE=INNODB;
 
--- Insert sample data
 INSERT INTO users (nom, prenom, tel, mail, password, role) VALUES
-('Admin', 'System', '0123456789', 'admin@escep.edu', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin'),
-('Dupont', 'Marie', '0123456790', 'marie.dupont@escep.edu', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'teacher'),
-('Martin', 'Pierre', '0123456791', 'pierre.martin@escep.edu', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'teacher'),
-('Doe', 'John', '0123456792', 'john.doe@student.escep.edu', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'student'),
-('Smith', 'Jane', '0123456793', 'jane.smith@student.escep.edu', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'student');
+('Admin', 'System', '0123456789', 'admin@escep.edu', '$$2y$10$ypWDJiAWePz0CcsrU9mIcOhzxZEP7RcrWIa59VKJXHekIwKzTI6Y2', 'admin'),
+('Issaka', 'Mounkaila', '0123456790', 'issaka.mounkaila@escep.edu', '$2y$10$pYAhmkJTE3AcrUQRtG2ZMOJy.C/1sFxhJPVagSqeX.gUCpG2UGKCW', 'teacher'),
+('Assogba', 'Isaac', '0123456793', 'assogba.isaac@escep.edu', '$$2y$10$m4DtyfcoOJ/r6KV8Yt6ci.8ecw6V89qs0Yzc0/Ad7MehzjKpK3zqK', 'student'),
+('André ', 'Lobit', '0123456790', 'andre.lobit@escep.edu', '$2y$10$pYAhmkJTE3AcrUQRtG2ZMOJy.C/1sFxhJPVagSqeX.gUCpG2UGKCW', 'teacher'),
+('Aboubakar', 'Alhassane', '0123456793', 'aboubakar.alhassane@escep.edu', '$$2y$10$m4DtyfcoOJ/r6KV8Yt6ci.8ecw6V89qs0Yzc0/Ad7MehzjKpK3zqK', 'student');
 
 INSERT INTO teachers (user_id, date_prise_fonction, departement, indice) VALUES
 (2, '2020-09-01', 'Informatique', 350),
